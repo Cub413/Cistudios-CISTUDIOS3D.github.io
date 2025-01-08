@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interfaz con Botones Estilo Impresionante</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #111;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+    }
+
+    .button {
+      padding: 20px 40px;
+      margin: 20px;
+      font-size: 24px;
+      color: white;
+      background: linear-gradient(45deg, #ff6b6b, #f7b731, #6a89cc);
+      border: none;
+      border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .button:active {
+      transform: scale(1.05);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    #buttons-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 1000;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.8);
+      animation: moveStars 10s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes moveStars {
+      0% {
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+      50% {
+        transform: translate(200px, 200px);
+        opacity: 0.5;
+      }
+      100% {
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+    }
+
+    /* Fullscreen Background Canvas */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="buttons-container">
+      <button class="button" id="btn3d">3D</button>
+      <button class="button" id="btn2d">2D</button>
+      <button class="button" id="btnYoutube">YouTube</button>
+    </div>
+  </div>
+
+  <canvas id="starsCanvas"></canvas>
+
+  <script>
+    // Function to handle button redirection
+    document.getElementById('btn3d').addEventListener('click', function () {
+      window.location.href = '3d.html'; // Redirige a la página 3D
+    });
+
+    document.getElementById('btn2d').addEventListener('click', function () {
+      window.location.href = '2d.html'; // Redirige a la página 2D
+    });
+
+    document.getElementById('btnYoutube').addEventListener('click', function () {
+      window.location.href = 'https://youtube.com/@cubito...?si=RTwC_lMm169tk3X_'; // Redirige a YouTube
+    });
+
+    // Crear partículas de estrellas en el fondo
+    function createStars() {
+      const canvas = document.getElementById("starsCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Establecer tamaño del lienzo
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Función para generar una partícula aleatoria
+      function createParticle() {
+        const size = Math.random() * 3 + 1; // Tamaño aleatorio
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const speedX = (Math.random() - 0.5) * 2; // Velocidad aleatoria en el eje X
+        const speedY = (Math.random() - 0.5) * 2; // Velocidad aleatoria en el eje Y
+
+        return {
+          x: x,
+          y: y,
+          size: size,
+          speedX: speedX,
+          speedY: speedY,
+        };
+      }
+
+      // Crear un número de partículas aleatorias
+      const particles = [];
+      for (let i = 0; i < 200; i++) {
+        particles.push(createParticle());
+      }
+
+      // Función para dibujar partículas
+      function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Dibujar cada partícula
+        particles.forEach(particle => {
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+          ctx.fill();
+
+          // Actualizar posición de la partícula
+          particle.x += particle.speedX;
+          particle.y += particle.speedY;
+
+          // Rebotar las partículas en los bordes
+          if (particle.x > canvas.width || particle.x < 0) particle.speedX *= -1;
+          if (particle.y > canvas.height || particle.y < 0) particle.speedY *= -1;
+        });
+
+        requestAnimationFrame(drawParticles); // Llamada recursiva para animar
+      }
+
+      drawParticles(); // Iniciar el dibujo de partículas
+    }
+
+    // Llamada para iniciar la animación de estrellas
+    createStars();
+  </script>
+
+</body>
+</html>
