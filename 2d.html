@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dibujo 2D con Manchas y Tema Gris</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Agregar Font Awesome -->
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #333; /* Fondo gris oscuro */
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #canvas {
+      border: 1px solid #ccc;
+      background-color: #fff;
+      width: 80%;
+      height: 80%;
+      max-width: 600px;
+      max-height: 500px;
+      position: relative;
+    }
+
+#leftPanel {
+  position: fixed;
+  top: 0;
+  left: -250px; /* Panel oculto inicialmente */
+  width: 250px;
+  height: 100vh;
+  background-color: #444;
+  box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.5);
+  transition: left 0.3s ease;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+#leftPanel::-webkit-scrollbar {
+  width: 10px; /* Ancho del scrollbar */
+}
+
+#leftPanel::-webkit-scrollbar-thumb {
+  background: #888; /* Color del scrollbar */
+  border-radius: 5px;
+}
+
+#leftPanel::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color al pasar el mouse */
+}
+
+
+/* Estilo para la scrollbar (opcional, para personalizarla) */
+#leftPanel::-webkit-scrollbar {
+  width: 8px;
+}
+
+#leftPanel::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color del scroll */
+  border-radius: 4px;
+}
+
+#leftPanel::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Color al pasar el mouse */
+}
+
+    /* Botón para abrir/cerrar el panel */
+    #togglePanelButton {
+  position: absolute;
+  top: 20px; /* Distancia desde la parte superior */
+  right: 20px; /* Distancia desde la parte derecha */
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 20; /* Asegurar que esté encima de otros elementos */
+}
+
+
+    /* Botón de color y tamaño */
+    #colorButton, #brushSizeButton, #manchaButton {
+      background-color: #3498db;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    /* Botón de mancha - icono */
+    #manchaButton {
+      font-size: 20px; /* Hacer el icono más grande */
+    }
+
+    /* Input de tipo color */
+    #colorInput {
+      margin-top: 20px;
+      padding: 10px;
+      cursor: pointer;
+      background-color: transparent;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      height: 40px;
+      outline: none;
+    }
+
+    /* Slider para cambiar el tamaño del pincel */
+    #brushSizeSlider {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    /* Mostrar el tamaño del pincel seleccionado */
+    #brushSizeValue {
+      margin-top: 5px;
+      font-size: 14px;
+    }
+
+    /* Panel derecho */
+    #rightPanel {
+      position: fixed;
+      top: 0;
+      right: -60px;
+      width: 60px;
+      height: 100vh;
+      background-color: #444;
+      transition: right 0.3s ease;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      z-index: 10;
+    }
+    /* Barra de animación compacta */
+#animationBar {
+  position: fixed;
+  bottom: -100px;
+  left: 0;
+  width: 100%;
+  background-color: #444;
+  padding: 5px;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
+  transition: bottom 0.3s ease;
+  z-index: 10;
+}
+
+#framesContainer {
+  display: flex;
+  overflow-x: auto;
+  background-color: #555;
+  padding: 5px;
+  gap: 5px;
+  height: 50px;
+}
+#newSection {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#newSection p {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+#newSection button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+}
+
+#newSection button:hover {
+  background-color: #2980b9;
+}
+#renderVideoButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#renderVideoButton:hover {
+  background-color: #45a049;
+}
+
+#videoModal {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#recordedVideo {
+  width: 80%;
+}
+
+#statusMessage {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+
+
+#framesContainer img {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #fff;
+  cursor: pointer;
+  object-fit: cover;
+}
+
+#animationControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+#animationControls button, #fpsInput {
+  padding: 5px 8px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+      /* Sidebar */
+      #sidebar {
+        position: fixed;
+        top: 20px;
+        right: 0;
+        width: 190px;
+        height: calc(100% - 10px);
+        background-color: #2c2c2c;
+        color: #fff;
+        padding: 5px;
+        overflow-y: auto;
+        z-index: 1;
+      }
+
+      #sidebar .section {
+        margin-bottom: 10px;
+      }
+
+      #sidebar .section h3 {
+        font-size: 19px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #5866FF;
+        padding-bottom: 4px;
+      }
+
+      #sidebar .section button {
+        width: 100%;
+        background-color: #444;
+        border: none;
+        color: #27EBFF;
+        padding: 5px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+      }
+
+      #sidebar .section button i {
+        margin-right: 8px;
+      }
+
+      #sidebar .section button:hover {
+        background-color: #555;
+      }
+      .section {
+  margin-bottom: 20px;
+}
+
+.section button {
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+/* Estilos para el panel superior */
+#top-panel {
+  position: fixed; /* Lo mantiene fijo en la parte superior */
+  top: 0; /* Coloca el panel en la parte superior de la pantalla */
+  left: 0; /* Alineado a la izquierda */
+  width: 100%; /* Ocupa todo el ancho de la pantalla */
+  background-color: #333; /* Fondo oscuro */
+  color: white; /* Color de texto blanco */
+  padding: 10px 20px; /* Espaciado dentro del panel */
+  display: flex; /* Usa flexbox para alinear los elementos */
+  justify-content: flex-start; /* Alinea los elementos al inicio (izquierda) */
+  align-items: center; /* Centra verticalmente los elementos */
+  z-index: 1000; /* Asegura que el panel esté por encima de otros elementos */
+}
+
+#top-panel button {
+  background-color: #555; /* Fondo de los botones */
+  border: none; /* Sin borde */
+  color: white; /* Color del texto */
+  padding: 1px 5px; /* Espaciado dentro del botón */
+  margin-right: 15px; /* Espaciado entre botones */
+  cursor: pointer; /* Cambia el cursor cuando pasas sobre el botón */
+  font-size: 15px; /* Tamaño de fuente */
+}
+
+#top-panel button:hover {
+  background-color: #777; /* Cambio de color al pasar el cursor sobre el botón */
+}
+
+  </style>
+</head>
+<body>
+<!-- Panel superior -->
+<div id="top-panel">
+  <button id="toggleAnimationBar">Animación</button>
+      <!-- Botón Hamburguesa -->
+<button id="menu-button" onclick="toggleSidebar()">
+  menu</span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- Herramienta de borrador -->
+<button id="eraserButton" >Borrador</button>
+  </div>
+  
+  <!-- Puedes agregar más botones o elementos aquí -->
+</div>
+
+  <!-- Lienzo para dibujar -->
+  <canvas id="canvas"></canvas>
+  
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="section">
+
+  
+    <!-- Botón para cambiar color -->
+    <button id="colorButton">Cambiar Color</button>
+
+    <!-- Selector de color -->
+    <input type="color" id="colorInput" />
+
+    <!-- Botón para cambiar tamaño del pincel -->
+    <button id="brushSizeButton">Cambiar Tamaño</button>
+
+    <!-- Slider para cambiar el tamaño del pincel -->
+    <input type="range" id="brushSizeSlider" min="1" max="50" value="5">
+    <div id="brushSizeValue">Tamaño del pincel: 5px</div>
+    <!-- Texto "New" y botones debajo -->
+    <div id="colorPalette" >
+  <button onclick="saveColor()">Guardar Color</button>
+  <div id="savedColors" style="display: flex; gap: 5px; margin-top: 5px;"></div>
+</div>
+<div id="newSection">
+  <p>New</p>
+  <button onclick="location.href='3d.html'">3D</button>
+  <button onclick="location.href='2d.html'">2D</button>
+  <button onclick="location.href='edit.html'">Edit</button>
+</div>
+<!-- Botón para importar video -->
+<button id="importVideoButton" >
+  Importar Video
+</button>
+
+<!-- Botón para renderizar el video -->
+<button id="renderVideoButton">Render Video</button>
+<!-- Botón para importar imagen -->
+<button id="importImageButton">Importar Imagen</button>
+
+<!-- Botón para confirmar posición y escala -->
+<button id="confirmButton" style="display: none;">OK</button>
+
+<!-- Contenedor para el video generado -->
+<div id="videoModal" style="display: none;">
+  <video id="recordedVideo" controls></video>
+  <br>
+  <a id="downloadLink" href="#" style="display: none;">Descargar Video</a>
+  <button id="copyLinkButton" style="display: none;">Copiar Enlace</button>
+</div>
+
+<!-- Mensaje de estado -->
+<p id="statusMessage" style="font-weight: bold;"></p>
+
+
+  </div>
+
+  <!-- Panel derecho con botón de mancha -->
+  <div id="rightPanel">
+    <!-- Icono de mancha -->
+    <button id="manchaButton"><i class="fas fa-paint-roller"></i></button>
+  </div>
+
+  <!-- Botón para abrir/cerrar el panel -->
+
+<!-- Botón para mostrar/ocultar la barra de animación -->
+    <!-- Botón Hamburguesa -->
+<button id="menu-button" onclick="toggleSidebar()">
+  menu</span>
+  <span></span>
+  <span></span>
+</button>
+  </div>
+
+
+<!-- Barra de animación -->
+<div id="animationBar">
+  <div id="framesContainer"></div>
+  <div id="animationControls">
+    <button id="addFrame">Nuevo</button>
+    <button id="deleteFrame">Eliminar</button>
+    <input type="number" id="fpsInput" value="12" min="1" style="width: 50px;"> FPS
+    <button id="playAnimation">▶</button>
+  </div>
+</div>
+
+  <script>
+
+    const ctx = canvas.getContext('2d');
+    const colorInput = document.getElementById('colorInput');
+    const colorButton = document.getElementById('colorButton');
+    const brushSizeButton = document.getElementById('brushSizeButton');
+    const brushSizeSlider = document.getElementById('brushSizeSlider');
+    const brushSizeValue = document.getElementById('brushSizeValue');
+    const manchaButton = document.getElementById('manchaButton');
+    const togglePanelButton = document.getElementById('togglePanelButton');
+
+    // Panel derecho
+    const rightPanel = document.getElementById('rightPanel');
+    
+    // Ajustar el tamaño del lienzo
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    // Variables para el dibujo
+    let cursorX = canvas.width / 2;
+    let cursorY = canvas.height / 2;
+    let isDrawing = false;
+    let currentColor = '#000000'; // Color inicial del pincel
+    let brushSize = 5; // Tamaño inicial del pincel
+    let isPainting = false; // Variable para saber si estamos manchando
+
+    // Configuración del lienzo
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = brushSize;
+
+    // Actualizar la posición del cursor
+    function updateCursorPosition(x, y) {
+      cursorX = x;
+      cursorY = y;
+    }
+
+    // Iniciar el dibujo
+    function startDrawing(x, y) {
+      isDrawing = true;
+      ctx.beginPath();
+      ctx.moveTo(x, y); // Iniciar desde la posición del cursor
+    }
+
+    // Dibujar
+    function draw(x, y) {
+      if (!isDrawing) return;
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+
+    // Manchar (modo mancha)
+    function startPainting(x, y) {
+      isPainting = true;
+      ctx.beginPath();
+      ctx.moveTo(x, y); // Iniciar desde la posición del cursor
+    }
+
+    function paint(x, y) {
+      if (!isPainting) return;
+      // Aumentar el tamaño y dispersar la pintura
+      ctx.lineWidth = brushSize * 2;
+      ctx.lineTo(x + Math.random() * 10 - 5, y + Math.random() * 10 - 5);
+      ctx.stroke();
+    }
+
+    // Detener el dibujo o manchado
+    function stopDrawing() {
+      isDrawing = false;
+      isPainting = false;
+    }
+
+    // Cambiar el color del pincel según el input de color
+    colorInput.addEventListener('input', (e) => {
+      currentColor = e.target.value;
+      ctx.strokeStyle = currentColor;
+    });
+
+    // Cambiar el tamaño del pincel según el slider
+    brushSizeSlider.addEventListener('input', (e) => {
+      brushSize = e.target.value;
+      ctx.lineWidth = brushSize;
+      brushSizeValue.textContent = `Tamaño del pincel: ${brushSize}px`;
+    });
+
+function togglePanel() {
+  const leftPanel = document.getElementById('leftPanel');
+  if (leftPanel.style.left === '0px') {
+    leftPanel.style.left = '-250px'; // Ocultar el panel
+  } else {
+    leftPanel.style.left = '0px'; // Mostrar el panel
+  }
+}
+
+
+    // Activar el modo de manchar
+    manchaButton.addEventListener('click', () => {
+      isPainting = !isPainting; // Cambiar el estado de manchado
+      if (isPainting) {
+        manchaButton.style.backgroundColor = '#3498db'; // Cambiar color al activarse
+      } else {
+        manchaButton.style.backgroundColor = ''; // Volver al color original
+      }
+    });
+
+    // Eventos para pantallas táctiles
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      if (isPainting) {
+        startPainting(x, y); // Activar manchado
+      } else {
+        startDrawing(x, y); // Iniciar dibujo
+      }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      if (isPainting) {
+        paint(x, y); // Pintar (manchar)
+      } else {
+        draw(x, y); // Dibujar
+      }
+    });
+
+    canvas.addEventListener('touchend', stopDrawing);
+
+// Variables principales
+const animationBar = document.getElementById("animationBar");
+const toggleAnimationBar = document.getElementById("toggleAnimationBar");
+const framesContainer = document.getElementById("framesContainer");
+const addFrameButton = document.getElementById("addFrame");
+const deleteFrameButton = document.getElementById("deleteFrame");
+const playButton = document.getElementById("playAnimation");
+const fpsInput = document.getElementById("fpsInput");
+
+let frames = []; // Almacena los datos de cada fotograma
+let currentFrame = 0;
+let isPlaying = false;
+
+// Mostrar/ocultar barra de animación
+toggleAnimationBar.addEventListener("click", () => {
+  animationBar.style.bottom = animationBar.style.bottom === "0px" ? "-100px" : "0px";
+});
+
+// Actualizar miniaturas
+function updateFramesUI() {
+  framesContainer.innerHTML = "";
+  frames.forEach((frame, index) => {
+    const img = new Image();
+    img.src = frame;
+    img.dataset.index = index;
+    img.addEventListener("click", () => loadFrame(index));
+    img.style.border = index === currentFrame ? "2px solid yellow" : "1px solid white";
+    framesContainer.appendChild(img);
+  });
+}
+
+// Guardar cambios del lienzo en el fotograma actual
+function saveCurrentFrame() {
+  if (frames.length > 0) {
+    const currentCanvas = document.createElement("canvas");
+    currentCanvas.width = canvas.width;
+    currentCanvas.height = canvas.height;
+    const currentCtx = currentCanvas.getContext("2d");
+    currentCtx.drawImage(canvas, 0, 0); // Guardar el estado del lienzo actual
+    frames[currentFrame] = currentCanvas.toDataURL(); // Actualizar el fotograma actual
+    updateFramesUI(); // Actualizar miniaturas
+  }
+}
+
+// Crear un nuevo fotograma en blanco
+addFrameButton.addEventListener("click", () => {
+  saveCurrentFrame(); // Guardar cambios del fotograma actual antes de crear uno nuevo
+
+  // Crear un lienzo en blanco
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el lienzo actual
+  const blankCanvas = document.createElement("canvas");
+  blankCanvas.width = canvas.width;
+  blankCanvas.height = canvas.height;
+  const blankCtx = blankCanvas.getContext("2d");
+  blankCtx.fillStyle = "#fff"; // Fondo blanco
+  blankCtx.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
+
+  frames.push(blankCanvas.toDataURL()); // Agregar el lienzo en blanco como nuevo fotograma
+  currentFrame = frames.length - 1;
+  updateFramesUI();
+});
+
+
+
+
+
+
+// Cargar un fotograma
+function loadFrame(index) {
+  saveCurrentFrame(); // Guardar cambios antes de cargar otro fotograma
+  currentFrame = index;
+  const img = new Image();
+  img.src = frames[index];
+  img.onload = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  };
+  updateFramesUI();
+}
+
+deleteFrameButton.addEventListener("click", () => {
+  if (frames.length > 0) {
+    // Elimina el fotograma actual
+    frames.splice(currentFrame, 1);
+
+    // Si se eliminó el último fotograma, ajustamos currentFrame al fotograma anterior
+    if (frames.length > 0) {
+      // Si el fotograma eliminado era el último, mantenemos el índice actual al fotograma anterior
+      if (currentFrame >= frames.length) {
+        currentFrame = frames.length - 1; // Ajustamos a la posición del último fotograma disponible
+      }
+
+      // Cargar el fotograma actual después de la eliminación
+      loadFrame(currentFrame);
+    } else {
+      // Si no hay fotogramas restantes, limpiar el lienzo
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      currentFrame = 0;
+    }
+
+    updateFramesUI(); // Actualiza las miniaturas en la interfaz
+  }
+});
+
+
+// Reproducir animación
+playButton.addEventListener("click", () => {
+  if (isPlaying || frames.length === 0) return;
+  isPlaying = true;
+
+  let frameIndex = 0;
+  const fps = Math.max(1, parseInt(fpsInput.value, 10)); // FPS mínimo: 1
+  const interval = setInterval(() => {
+    if (frameIndex >= frames.length) {
+      clearInterval(interval);
+      isPlaying = false;
+      return;
+    }
+
+    const img = new Image();
+    img.src = frames[frameIndex];
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+
+    frameIndex++;
+  }, 1000 / fps);
+});
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.style.display = sidebar.style.display === "none" ? "block" : "none";
+  }
+// Guardar automáticamente cuando el usuario deja de dibujar
+canvas.addEventListener("mouseup", saveCurrentFrame);
+canvas.addEventListener("touchend", saveCurrentFrame);
+
+    // Eventos para ratón
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (isPainting) {
+        startPainting(x, y);
+      } else {
+        startDrawing(x, y);
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing && !isPainting) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (isPainting) {
+        paint(x, y); // Pintar (manchar)
+      } else {
+        draw(x, y); // Dibujar
+      }
+    });
+
+    canvas.addEventListener('mouseup', stopDrawing);
+
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.style.display = sidebar.style.display === "none" ? "block" : "none";
+  }
+  
+  // Ejecutar al cargar la página
+  window.onload = function() {
+    const menuButton = document.getElementById('menu-button');
+    if (menuButton) {
+      menuButton.click(); // Simula el clic en el botón
+    }
+  };
+
+// Herramienta de borrador
+const eraserButton = document.getElementById("eraserButton");
+eraserButton.addEventListener("click", () => {
+  ctx.globalCompositeOperation =
+    ctx.globalCompositeOperation === "destination-out" ? "source-over" : "destination-out";
+  eraserButton.style.backgroundColor =
+    ctx.globalCompositeOperation === "destination-out" ? "#e74c3c" : "#f39c12";
+});
+
+// Paleta de colores
+const savedColorsContainer = document.getElementById("savedColors");
+function saveColor() {
+  const colorDiv = document.createElement("div");
+  colorDiv.style.background = currentColor;
+  colorDiv.style.width = "20px";
+  colorDiv.style.height = "20px";
+  colorDiv.style.border = "1px solid #000";
+  colorDiv.style.cursor = "pointer";
+  colorDiv.onclick = () => {
+    currentColor = colorDiv.style.background;
+    ctx.strokeStyle = currentColor;
+  };
+  savedColorsContainer.appendChild(colorDiv);
+}
+
+// Importar video y generar fotogramas
+const importVideoButton = document.getElementById("importVideoButton");
+
+importVideoButton.addEventListener("click", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "video/*";
+  input.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const video = document.createElement("video");
+      video.src = URL.createObjectURL(file);
+      video.crossOrigin = "anonymous";
+
+      video.addEventListener("loadeddata", async () => {
+        const duration = video.duration;
+        const fps = parseInt(fpsInput.value, 10) || 12;
+        const frameCount = Math.ceil(duration * fps);
+
+        for (let i = 0; i < frameCount; i++) {
+          await new Promise((resolve) => {
+            video.currentTime = (i / fps);
+            video.onseeked = () => {
+              const videoCanvas = document.createElement("canvas");
+              videoCanvas.width = canvas.width;
+              videoCanvas.height = canvas.height;
+              const videoCtx = videoCanvas.getContext("2d");
+              videoCtx.drawImage(video, 0, 0, videoCanvas.width, videoCanvas.height);
+
+              const frameData = videoCanvas.toDataURL();
+              if (frames.length <= i) {
+                frames.push(frameData); // Agregar nuevo fotograma
+              } else {
+                frames[i] = frameData; // Sobrescribir fotograma existente
+              }
+              updateFramesUI(); // Actualizar miniaturas
+              resolve();
+            };
+          });
+        }
+      });
+    }
+  });
+  input.click();
+});
+// Variables para el cuadro de alambre
+let image = null;
+let imageX = 50, imageY = 50;
+let imageWidth = 200, imageHeight = 200;
+let isDragging = false, isResizing = false, isRotating = false;
+let startX, startY;
+let rotationAngle = 0;
+
+// Importar imagen
+const importImageButton = document.getElementById("importImageButton");
+const confirmButton = document.getElementById("confirmButton");
+
+importImageButton.addEventListener("click", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        image = img;
+        drawCanvas();
+        confirmButton.style.display = "block"; // Mostrar botón OK
+      };
+    }
+  });
+  input.click();
+});
+
+// Confirmar posición y escala
+confirmButton.addEventListener("click", () => {
+  drawCanvas(false); // Redibujar sin cuadro de alambre
+  confirmButton.style.display = "none"; // Ocultar botón OK
+  canvas.removeEventListener("touchmove", handleTouchMove); // Deshabilitar edición
+  canvas.removeEventListener("touchstart", handleTouchStart);
+  canvas.removeEventListener("touchend", handleTouchEnd);
+});
+
+// Dibujar en el lienzo
+function drawCanvas(showWireframe = true) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (image) {
+    ctx.save();
+    ctx.translate(imageX + imageWidth / 2, imageY + imageHeight / 2);
+    ctx.rotate((rotationAngle * Math.PI) / 180);
+    ctx.drawImage(
+      image,
+      -imageWidth / 2,
+      -imageHeight / 2,
+      imageWidth,
+      imageHeight
+    );
+    ctx.restore();
+    if (showWireframe) drawWireframe();
+  }
+}
+
+// Dibujar el cuadro de alambre con un punto para rotar
+function drawWireframe() {
+  ctx.strokeStyle = "#3498db";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(imageX, imageY, imageWidth, imageHeight);
+
+  const cornerSize = 20;
+  ctx.fillStyle = "#3498db";
+  ctx.fillRect(imageX - cornerSize / 2, imageY - cornerSize / 2, cornerSize, cornerSize);
+  ctx.fillRect(imageX + imageWidth - cornerSize / 2, imageY - cornerSize / 2, cornerSize, cornerSize);
+  ctx.fillRect(imageX - cornerSize / 2, imageY + imageHeight - cornerSize / 2, cornerSize, cornerSize);
+  ctx.fillRect(imageX + imageWidth - cornerSize / 2, imageY + imageHeight - cornerSize / 2, cornerSize, cornerSize);
+
+  // Cuadro para rotación (esquina superior derecha)
+  ctx.fillStyle = "#e74c3c";
+  ctx.fillRect(imageX + imageWidth - 10, imageY - 30, 20, 20);
+}
+
+// Manejo táctil
+canvas.addEventListener("touchstart", handleTouchStart);
+canvas.addEventListener("touchmove", handleTouchMove);
+canvas.addEventListener("touchend", handleTouchEnd);
+
+function handleTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  startX = x;
+  startY = y;
+
+  // Detectar si se está arrastrando, redimensionando o rotando
+  if (x > imageX && x < imageX + imageWidth && y > imageY && y < imageY + imageHeight) {
+    isDragging = true;
+  } else if (Math.abs(x - (imageX + imageWidth)) < 20 && Math.abs(y - imageY + 30) < 20) {
+    isRotating = true;
+  } else if (
+    (Math.abs(x - imageX) < 20 && Math.abs(y - imageY) < 20) ||
+    (Math.abs(x - (imageX + imageWidth)) < 20 && Math.abs(y - imageY) < 20) ||
+    (Math.abs(x - imageX) < 20 && Math.abs(y - (imageY + imageHeight)) < 20) ||
+    (Math.abs(x - (imageX + imageWidth)) < 20 && Math.abs(y - (imageY + imageHeight)) < 20)
+  ) {
+    isResizing = true;
+  }
+}
+
+function handleTouchMove(e) {
+  if (!isDragging && !isResizing && !isRotating) return;
+
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  if (isDragging) {
+    const dx = x - startX;
+    const dy = y - startY;
+    imageX += dx;
+    imageY += dy;
+    startX = x;
+    startY = y;
+  } else if (isResizing) {
+    imageWidth = Math.abs(x - imageX);
+    imageHeight = Math.abs(y - imageY);
+  } else if (isRotating) {
+    const dx = x - (imageX + imageWidth / 2);
+    const dy = y - (imageY + imageHeight / 2);
+    rotationAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+  }
+  drawCanvas();
+}
+
+function handleTouchEnd() {
+  isDragging = false;
+  isResizing = false;
+  isRotating = false;
+}
+
+  </script>
+
+</body>
+</html>
