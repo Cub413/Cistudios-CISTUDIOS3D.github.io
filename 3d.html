@@ -499,6 +499,8 @@ button:hover {
   
   <!-- Menú desplegable de "New" -->
   <div id="newMenu" style="display: none;">
+        <button id="importVideoButton">Importar Video</button>
+<input type="file" id="videoFileInput" accept="video/*" style="display:none;">
     <button id="button2D">2D</button>
     <button id="button3D">3D</button>
   </div>
@@ -3259,6 +3261,84 @@ const topPanelButton = document.getElementById('toggleTopPanel');
       topPanel.style.display = 'none'; // Ocultar el panel
     }
   });
+    const importVideoButton = document.getElementById("importVideoButton");
+const videoFileInput = document.getElementById("videoFileInput");
+
+let videoElement;
+let videoTexture;
+let videoPlane;
+
+// Abrir el selector de archivos al presionar el botón
+importVideoButton.addEventListener("click", () => {
+  videoFileInput.click();
+});
+
+// Crear el plano y cargar el video
+videoFileInput.addEventListener("change", (event) => {
+  if (event.target.files && event.target.files[0]) {
+    const file = event.target.files[0];
+    videoElement = document.createElement("video");
+
+    videoElement.src = URL.createObjectURL(file);
+    videoElement.loop = true; // Reproducir en bucle
+    videoElement.muted = true; // Sin sonido inicialmente
+    videoElement.play();
+
+    videoTexture = new THREE.VideoTexture(videoElement);
+
+    if (videoPlane) {
+      // Eliminar plano previo si ya existe
+      scene.remove(videoPlane);
+    }
+
+    const planeGeometry = new THREE.PlaneGeometry(16, 9); // Relación de aspecto 16:9
+    const planeMaterial = new THREE.MeshStandardMaterial({
+      map: videoTexture,
+      side: THREE.DoubleSide,
+    });
+
+    videoPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+    videoPlane.position.set(0, 5, 0); // Posición inicial del plano
+    scene.add(videoPlane);
+
+    objects.push(videoPlane); // Hacer interactivo el plano
+
+    alert("Video importado correctamente.");
+  }
+});
+
+// Seleccionar el plano al hacer clic y adjuntar TransformControls
+renderer.domElement.addEventListener("click", (event) => {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  const intersects = raycaster.intersectObjects(objects);
+  if (intersects.length > 0) {
+    const selectedObject = intersects[0].object;
+    if (selectedObject === videoPlane) {
+      transformControls.attach(videoPlane); // Adjuntar TransformControls al plano
+    
+    }
+  }
+});
+
+// Iniciar o pausar la animación al presionar "Reproducir Animación"
+const toggleAnimationButton = document.getElementById("toggleAnimation");
+toggleAnimationButton.addEventListener("click", () => {
+  if (videoElement) {
+    if (videoElement.paused) {
+      videoElement.play();
+      alert("Video reproduciéndose.");
+    } else {
+      videoElement.pause();
+      alert("Video pausado.");
+    }
+  }
+});
+
   </script>
 </body>
 </html>
