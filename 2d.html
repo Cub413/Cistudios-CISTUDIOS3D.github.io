@@ -338,6 +338,8 @@
   <span></span>
   <span></span>
 </button>
+  <!-- Herramienta de borrador -->
+<button id="eraserButton" >Borrador</button>
   </div>
   
   <!-- Puedes agregar más botones o elementos aquí -->
@@ -369,6 +371,18 @@
   <button onclick="location.href='2d.html'">2D</button>
   <button onclick="location.href='edit.html'">Edit</button>
 </div>
+        <!-- Botón para importar video -->
+<button id="importVideoButton" >
+  Importar Video
+</button><!-- Botón para importar imagen -->
+<button id="importImageButton">Importar Imagen</button>
+
+<!-- Botón para confirmar posición y escala -->
+<button id="confirmButton" style="display: none;">OK</button>
+   <!-- Texto "New" y botones debajo -->
+    <div id="colorPalette" >
+  <button onclick="saveColor()">Guardar Color</button>
+  <div id="savedColors" style="display: flex; gap: 5px; margin-top: 5px;"></div>
 <!-- Botón para renderizar el video -->
 <button id="renderVideoButton">Render Video</button>
 
@@ -729,6 +743,66 @@ function toggleSidebar() {
       menuButton.click(); // Simula el clic en el botón
     }
   };
+// Variables para el papel cebolla
+const onionSkinTransparency = document.getElementById("onionSkinTransparency");
+const onionSkinValue = document.getElementById("onionSkinValue");
+let onionSkinTransparencyValue = 0.5; // Transparencia inicial
+
+// Aplicar transparencia inicial al cargar la página
+onionSkinTransparency.value = onionSkinTransparencyValue;
+onionSkinValue.textContent = `Transparencia: ${onionSkinTransparencyValue}`;
+
+// Redibujar todos los fotogramas con papel cebolla activo por defecto
+drawOnionSkin();
+
+// Cambiar la transparencia global
+onionSkinTransparency.addEventListener("input", (e) => {
+  onionSkinTransparencyValue = parseFloat(e.target.value);
+  onionSkinValue.textContent = `Transparencia: ${onionSkinTransparencyValue}`;
+  drawOnionSkin(); // Actualizar el papel cebolla con la nueva transparencia
+});
+
+// Dibujar el papel cebolla
+function drawOnionSkin() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (frames && frames.length > 0) {
+    // Dibujar todos los fotogramas anteriores con transparencia
+    for (let i = 0; i < currentFrame; i++) {
+      const previousImage = new Image();
+      previousImage.src = frames[i];
+      previousImage.onload = () => {
+        ctx.globalAlpha = onionSkinTransparencyValue; // Aplicar transparencia global
+        ctx.drawImage(previousImage, 0, 0, canvas.width, canvas.height);
+      };
+    }
+  }
+
+  // Dibujar el fotograma actual encima con opacidad completa
+  ctx.globalAlpha = 1; // Restaurar opacidad completa
+  if (frames[currentFrame]) {
+    const currentImage = new Image();
+    currentImage.src = frames[currentFrame];
+    currentImage.onload = () => {
+      ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+    };
+  }
+}
+
+// Guardar el estado del lienzo para cada fotograma
+function saveFrame() {
+  const frameCanvas = document.createElement("canvas");
+  frameCanvas.width = canvas.width;
+  frameCanvas.height = canvas.height;
+  const frameCtx = frameCanvas.getContext("2d");
+  frameCtx.drawImage(canvas, 0, 0);
+  frames[currentFrame] = frameCanvas.toDataURL();
+  drawOnionSkin(); // Actualizar el papel cebolla después de guardar
+}
+
+// Guardar automáticamente al cambiar de fotograma
+canvas.addEventListener("mouseup", saveFrame);
+canvas.addEventListener("touchend", saveFrame);
 
 
   </script>
