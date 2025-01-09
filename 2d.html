@@ -804,6 +804,215 @@ function saveFrame() {
 canvas.addEventListener("mouseup", saveFrame);
 canvas.addEventListener("touchend", saveFrame);
 
+// Herramienta de borrador
+const eraserButton = document.getElementById("eraserButton");
+eraserButton.addEventListener("click", () => {
+  ctx.globalCompositeOperation =
+    ctx.globalCompositeOperation === "destination-out" ? "source-over" : "destination-out";
+  eraserButton.style.backgroundColor =
+    ctx.globalCompositeOperation === "destination-out" ? "#e74c3c" : "#f39c12";
+});
+
+// Paleta de colores
+const savedColorsContainer = document.getElementById("savedColors");
+function saveColor() {
+  const colorDiv = document.createElement("div");
+  colorDiv.style.background = currentColor;
+  colorDiv.style.width = "20px";
+  colorDiv.style.height = "20px";
+  colorDiv.style.border = "1px solid #000";
+  colorDiv.style.cursor = "pointer";
+  colorDiv.onclick = () => {
+    currentColor = colorDiv.style.background;
+    ctx.strokeStyle = currentColor;
+  };
+  savedColorsContainer.appendChild(colorDiv);
+}
+
+// Importar video y generar fotogramas
+const importVideoButton = document.getElementById("importVideoButton");
+
+importVideoButton.addEventListener("click", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "video/*";
+  input.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const video = document.createElement("video");
+      video.src = URL.createObjectURL(file);
+      video.crossOrigin = "anonymous";
+
+      video.addEventListener("loadeddata", async () => {
+        const duration = video.duration;
+        const fps = parseInt(fpsInput.value, 10) || 12;
+        const frameCount = Math.ceil(duration * fps);
+
+        for (let i = 0; i < frameCount; i++) {
+          await new Promise((resolve) => {
+            video.currentTime = (i / fps);
+            video.onseeked = () => {
+              const videoCanvas = document.createElement("canvas");
+              videoCanvas.width = canvas.width;
+              videoCanvas.height = canvas.height;
+              const videoCtx = videoCanvas.getContext("2d");
+              videoCtx.drawImage(video, 0, 0, videoCanvas.width, videoCanvas.height);
+
+              const frameData = videoCanvas.toDataURL();
+              if (frames.length <= i) {
+                frames.push(frameData); // Agregar nuevo fotograma
+              } else {
+                frames[i] = frameData; // Sobrescribir fotograma existente
+              }
+              updateFramesUI(); // Actualizar miniaturas
+              resolve();
+            };
+          });
+        }
+      });
+    }
+  });
+  input.click();
+});
+// Variables para el cuadro de alambre
+let image = null;
+let imageX = 50, imageY = 50;
+let imageWidth = 200, imageHeight = 200;
+let isDragging = false, isResizing = false, isRotating = false;
+let startX, startY;
+let rotationAngle = 0;
+
+// Importar imagen
+const importImageButton = document.getElementById("importImageButton");
+const confirmButton = document.getElementById("confirmButton");
+
+importImageButton.addEventListener("click", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        image = img;
+        drawCanvas();
+        confirmButton.style.display = "block"; // Mostrar botón OK
+      };
+    }
+  });
+  input.click();
+});
+
+// Confirmar posición y escala
+confirmButton.addEventListener("click", () => {
+  drawCanvas(false); // Redibujar sin cuadro de alambre
+  confirmButton.style.display = "none"; // Ocultar botón OK
+  canvas.removeEventListener("touchmove", handleTouchMove); // Deshabilitar edición
+  canvas.removeEventListener("touchstart", handleTouchStart);
+  canvas.removeEventListener("touchend", handleTouchEnd);
+});
+
+// Dibujar en el lienzo
+function drawCanvas(showWireframe = true) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (image) {
+    ctx.save();
+    ctx.translate(imageX + imageWidth / 2, imageY + imageHeight / 2);
+    ctx.rotate((rotationAngle * Math.PI) / 180);
+    ctx.drawImage(
+      image,
+      -imageWidth / 2,
+      -imageHeight / 2,
+      imageWidth,
+      imageHeight
+    );
+    ctx.restore();
+    if (showWireframe) drawWireframe();
+  }
+}
+
+// Dibujar el cuadro de alambre con un punto para rotar
+function drawWireframe() {
+  ctx.strokeStyle = "#3498db";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(imageX, imageY, imageWidth, imageHeight);
+
+  const cornerSize = 20;
+  ctx.fillStyle = "#3498db";
+  ctx.fillRect(imageX - cornerSize / 2, imageY - cornerSize / 2, cornerSize, cornerSize);
+  ctx.fillRect(imageX + imageWidth - cornerSize / 2, imageY - cornerSize / 2, cornerSize, cornerSize);
+  ctx.fillRect(imageX - cornerSize / 2, imageY + imageHeight - cornerSize / 2, cornerSize, cornerSize);
+  ctx.fillRect(imageX + imageWidth - cornerSize / 2, imageY + imageHeight - cornerSize / 2, cornerSize, cornerSize);
+
+  // Cuadro para rotación (esquina superior derecha)
+  ctx.fillStyle = "#e74c3c";
+  ctx.fillRect(imageX + imageWidth - 10, imageY - 30, 20, 20);
+}
+
+// Manejo táctil
+canvas.addEventListener("touchstart", handleTouchStart);
+canvas.addEventListener("touchmove", handleTouchMove);
+canvas.addEventListener("touchend", handleTouchEnd);
+
+function handleTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  startX = x;
+  startY = y;
+
+  // Detectar si se está arrastrando, redimensionando o rotando
+  if (x > imageX && x < imageX + imageWidth && y > imageY && y < imageY + imageHeight) {
+    isDragging = true;
+  } else if (Math.abs(x - (imageX + imageWidth)) < 20 && Math.abs(y - imageY + 30) < 20) {
+    isRotating = true;
+  } else if (
+    (Math.abs(x - imageX) < 20 && Math.abs(y - imageY) < 20) ||
+    (Math.abs(x - (imageX + imageWidth)) < 20 && Math.abs(y - imageY) < 20) ||
+    (Math.abs(x - imageX) < 20 && Math.abs(y - (imageY + imageHeight)) < 20) ||
+    (Math.abs(x - (imageX + imageWidth)) < 20 && Math.abs(y - (imageY + imageHeight)) < 20)
+  ) {
+    isResizing = true;
+  }
+}
+
+function handleTouchMove(e) {
+  if (!isDragging && !isResizing && !isRotating) return;
+
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left;
+  const y = touch.clientY - rect.top;
+
+  if (isDragging) {
+    const dx = x - startX;
+    const dy = y - startY;
+    imageX += dx;
+    imageY += dy;
+    startX = x;
+    startY = y;
+  } else if (isResizing) {
+    imageWidth = Math.abs(x - imageX);
+    imageHeight = Math.abs(y - imageY);
+  } else if (isRotating) {
+    const dx = x - (imageX + imageWidth / 2);
+    const dy = y - (imageY + imageHeight / 2);
+    rotationAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+  }
+  drawCanvas();
+}
+
+function handleTouchEnd() {
+  isDragging = false;
+  isResizing = false;
+  isRotating = false;
+}
 
   </script>
 
