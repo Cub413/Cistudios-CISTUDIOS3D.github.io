@@ -4,14 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ionic Tabs Example</title>
+  <title>Inicio</title>
 
   <!-- Ionic Core -->
   <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
   <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+
 
   <!-- Ionic Styles -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
@@ -173,12 +172,14 @@ ion-toolbar {
           </ion-toolbar>
         </ion-header>
         <ion-content class="ion-padding">
-          <ion-button id="open-action-sheet">ci studios 3d/2d</ion-button>
+
           
                     <ion-button id="btnYoutube">YouTube</ion-button>
               
                    <ion-button id="2d">2d animation</ion-button>
                                       <ion-button id="3d">3d animation</ion-button>
+                                                                            <ion-button id="PIXELART">Pixel art</ion-button>
+                                                                                                                  <ion-button id="stopmotion">stopmotion</ion-button>
           </ion-action-sheet>
         </ion-content>
       </ion-tab>
@@ -194,11 +195,11 @@ ion-toolbar {
           <p>bienvenido/a a ci studios la nueva app/apk de animación tanto 3d como 2d no olvides Suscribirte a ci studios en youtube como c.i studios y instagram como c.i_studios gracias♡.</p>
                     <h1 class="text-center text-2xl font-bold mb-2">actualizaciones🤩</h1>
           
-          <p> #pantalla de inicio mejorada</p>
-                    <p>#nuevas herramientas en 3d</p>
-<p>#acceso directo</p>
-<p>#borrador en 2d</p>
-          <p>#controles en 3d</p>
+<p>#nuevo estilo de animacion:</p>
+<p>stopmotion y pixel art</p>
+<p>#mejoras en 3d</p>
+<p>#nuevos sistemas en 2d</p>
+<p>COMPRUEVALO TU MISMO</p>
         </ion-content>
       </ion-tab>
 
@@ -310,14 +311,7 @@ ion-toolbar {
    }
  });
  
-  document.addEventListener('DOMContentLoaded', () => {
-    const openButton = document.getElementById('open-action-sheet');
-    
-    openButton.addEventListener('click', () => {
-      window.location.href = 'index2.html'; // Redirige a edit.html
-    });
-  });
-
+  
     document.getElementById('btnYoutube').addEventListener('click', function () {
       window.location.href = 'https://youtube.com/@cubito...?si=RTwC_lMm169tk3X_'; // Redirige a YouTube
     });
@@ -325,16 +319,31 @@ ion-toolbar {
     const openButton = document.getElementById('2d');
     
     openButton.addEventListener('click', () => {
-      window.location.href = '2d.html'; // Redirige a edit.html
+      window.location.href = 'or2d.html'; // Redirige a edit.html
     });
   });
         document.addEventListener('DOMContentLoaded', () => {
     const openButton = document.getElementById('3d');
     
     openButton.addEventListener('click', () => {
-      window.location.href = '3d.html'; // Redirige a edit.html
+      window.location.href = 'or3d.html'; // Redirige a edit.html
     });
   });
+    document.addEventListener('DOMContentLoaded', () => {
+    const openButton = document.getElementById('PIXELART');
+    
+    openButton.addEventListener('click', () => {
+      window.location.href = 'orpixelart.html'; // Redirige a edit.html
+    });
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    const openButton = document.getElementById('stopmotion');
+    
+    openButton.addEventListener('click', () => {
+      window.location.href = 'orstopmotion.html'; // Redirige a edit.html
+    });
+  });
+
   </script>
 </body>
 

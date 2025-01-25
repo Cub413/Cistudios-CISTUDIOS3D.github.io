@@ -944,13 +944,18 @@ button:hover {
 
   
   <script>
-    // Escena, cámara y renderizador
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-    renderer.setPixelRatio(window.devicePixelRatio);
+// Escena, cámara y renderizador
+const scene = new THREE.Scene();
+
+// Configura la cámara
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+// Renderizador con antialiasing activado
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight); 
+renderer.setPixelRatio(window.devicePixelRatio); // Mejora la suavidad visual en pantallas de alta densidad de píxeles
+document.body.appendChild(renderer.domElement);
+
     
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1794,20 +1799,9 @@ roughnessInput.addEventListener("change", function(event) {
   }
 });
 
-// Crear una luz ambiental
-const ambientLight = new THREE.AmbientLight(0x404040, 1); // color y intensidad
+// Añadir una luz ambiental
+const ambientLight = new THREE.AmbientLight(0xffffff, 1); // Color de la luz (gris suave) e intensidad
 scene.add(ambientLight);
-
-// Crear una luz direccional desde el frente
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(5, 5, 5).normalize();
-scene.add(directionalLight);
-
-// Crear una luz direccional opuesta (desde atrás)
-const directionalLightOpposite = new THREE.DirectionalLight(0xffffff, 1);
-directionalLightOpposite.position.set(-5, -5, -5).normalize();
-scene.add(directionalLightOpposite);
-
 // Obtener los elementos del DOM
 const adjustLightButton = document.getElementById("adjustLightButton");
 const lightIntensitySlider = document.getElementById("lightIntensitySlider");
@@ -2901,84 +2895,6 @@ button2D.addEventListener('click', () => {
 // Redirigir a 3D.html
 button3D.addEventListener('click', () => {
   window.location.href = '3d.html';
-});
-document.addEventListener("DOMContentLoaded", function() {
-  const minecraftButton = document.getElementById('minecraftButton');
-  const loadSkinButton = document.getElementById('loadSkinButton');
-  const skinInput = document.getElementById('skinInput');
-
-  let character = null;
-  let textureLoader = new THREE.TextureLoader();
-
-  // Crear un personaje simple de Minecraft
-  function createMinecraftCharacter() {
-    // Crear la cabeza (cubo)
-    const headGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const headMaterial = new THREE.MeshBasicMaterial({ color: 0xF0C8A0 });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.5;
-
-    // Crear el cuerpo (cubo)
-    const bodyGeometry = new THREE.BoxGeometry(1, 1.5, 1);
-    const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x7A4A2D });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.5;
-
-    // Crear los brazos (cubos)
-    const armGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.5);
-    const armMaterial = new THREE.MeshBasicMaterial({ color: 0x7A4A2D });
-    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-    leftArm.position.set(-1.25, 0.5, 0);
-    rightArm.position.set(1.25, 0.5, 0);
-
-    // Crear las piernas (cubos)
-    const legGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.5);
-    const legMaterial = new THREE.MeshBasicMaterial({ color: 0x2A2A2A });
-    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-    leftLeg.position.set(-0.5, -0.75, 0);
-    rightLeg.position.set(0.5, -0.75, 0);
-
-    // Crear el personaje (grupo de cubos)
-    character = new THREE.Group();
-    character.add(head);
-    character.add(body);
-    character.add(leftArm);
-    character.add(rightArm);
-    character.add(leftLeg);
-    character.add(rightLeg);
-
-    scene.add(character);
-  }
-
-  // Botón Minecraft
-  minecraftButton.addEventListener('click', function() {
-    createMinecraftCharacter();
-    loadSkinButton.style.display = 'inline-block'; // Mostrar el botón de cargar skin
-  });
-
-  // Cargar skin
-  loadSkinButton.addEventListener('click', function() {
-    skinInput.click(); // Abrir el selector de archivo
-  });
-
-  // Seleccionar y aplicar la skin
-  skinInput.addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const texture = textureLoader.load(e.target.result);
-        if (character) {
-          const head = character.children[0]; // Cabeza es el primer cubo
-          head.material.map = texture;
-          head.material.needsUpdate = true;
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  });
 });
 
 let rainParticles = null;
@@ -4110,6 +4026,14 @@ objMaterialBtn.addEventListener('click', function() {
     materialPanel.style.display = 'none';
   });
 });
+// Luz direccional
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0); // Luz direccional
+directionalLight.position.set(10, 10, 10); // Posición de la luz
+scene.add(directionalLight);
+// Luz direccional opuesta (creada como ejemplo)
+const directionalLightOpposite = new THREE.DirectionalLight(0xffffff, 0); // Luz direccional opuesta
+directionalLightOpposite.position.set(-10, -10, -10); // Posición de la luz opuesta
+scene.add(directionalLightOpposite);
 
   </script>
 </body>
