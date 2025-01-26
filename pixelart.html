@@ -171,7 +171,14 @@ button#openPanelButton:hover {
         <button id="resizeButton">Cambiar tamaño del grid</button>
         <button id="colorButton">Cambiar color de celdas</button>
 <input type="color" id="colorPicker" style="display:none;">
-<button id="openImageButton">guardar png</button>
+
+<button id="showButton">Mostrar Pixel Art</button>
+<div id="fullScreenContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; justify-content: center; align-items: center; z-index: 1000;">
+  <canvas id="pixelArtCanvas"></canvas>
+  <div id="screenshotMessage" style="position: absolute; bottom: 10%; font-size: 20px; color: black; background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 5px;">Toma una captura de pantalla</div>
+  <button id="closeButton" style="position: absolute; top: 10px; right: 10px; font-size: 24px; background: none; border: none; color: black; cursor: pointer;">×</button>
+</div>
+
 
       <!-- Aquí puedes agregar más contenido -->
     </div>
@@ -318,15 +325,48 @@ function openImageInNewTab() {
     }
   });
 
-  // Crear una nueva ventana con la imagen
-  const imageWindow = window.open('', '_blank');
-  imageWindow.document.write('<html><head><title>Pixel Art</title></head><body>');
-  imageWindow.document.write('<img src="' + canvas.toDataURL('image/png') + '" />');
-  imageWindow.document.write('<a href="' + canvas.toDataURL('image/png') + '" download="pixelart.png">Haz clic aquí para descargar la imagen</a>');
-  imageWindow.document.write('</body></html>');
+
 }
-const openImageButton = document.getElementById('openImageButton');
-openImageButton.addEventListener('click', openImageInNewTab);
+
+  document.getElementById('showButton').addEventListener('click', () => {
+    const gridContainer = document.getElementById('gridContainer');
+    const cells = gridContainer.querySelectorAll('.gridCell');
+    const gridSize = Math.sqrt(cells.length); // Tamaño de la cuadrícula
+    const cellSize = 30; // Tamaño de cada celda en el canvas
+
+    // Configurar el canvas
+    const canvas = document.getElementById('pixelArtCanvas');
+    canvas.width = gridSize * cellSize;
+    canvas.height = gridSize * cellSize;
+    const ctx = canvas.getContext('2d');
+
+    // Dibujar el pixel art en el canvas
+    cells.forEach((cell, index) => {
+      const x = (index % gridSize) * cellSize;
+      const y = Math.floor(index / gridSize) * cellSize;
+      const color = cell.style.backgroundColor || 'white'; // Fondo blanco si no hay color
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, cellSize, cellSize);
+    });
+
+    // Mostrar el contenedor en pantalla completa
+    const fullScreenContainer = document.getElementById('fullScreenContainer');
+    fullScreenContainer.style.display = 'flex';
+
+    // Mostrar el mensaje temporalmente
+    const screenshotMessage = document.getElementById('screenshotMessage');
+    screenshotMessage.style.display = 'block';
+    setTimeout(() => {
+      screenshotMessage.style.display = 'none';
+    }, 3000);
+  });
+
+  document.getElementById('closeButton').addEventListener('click', () => {
+    const fullScreenContainer = document.getElementById('fullScreenContainer');
+    fullScreenContainer.style.display = 'none';
+  });
+
+
 
   </script>
 
