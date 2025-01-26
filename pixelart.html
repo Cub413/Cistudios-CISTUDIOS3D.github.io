@@ -171,7 +171,6 @@ button#openPanelButton:hover {
         <button id="resizeButton">Cambiar tamaño del grid</button>
         <button id="colorButton">Cambiar color de celdas</button>
 <input type="color" id="colorPicker" style="display:none;">
-
 <button id="showButton">Mostrar Pixel Art</button>
 <div id="fullScreenContainer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; justify-content: center; align-items: center; z-index: 1000;">
   <canvas id="pixelArtCanvas"></canvas>
@@ -328,17 +327,21 @@ function openImageInNewTab() {
 
 }
 
+
   document.getElementById('showButton').addEventListener('click', () => {
     const gridContainer = document.getElementById('gridContainer');
     const cells = gridContainer.querySelectorAll('.gridCell');
     const gridSize = Math.sqrt(cells.length); // Tamaño de la cuadrícula
-    const cellSize = 30; // Tamaño de cada celda en el canvas
+    const cellSize = 30; // Tamaño de cada celda en el canvas (puedes ajustarlo a 20x20 o lo que necesites)
 
     // Configurar el canvas
     const canvas = document.getElementById('pixelArtCanvas');
-    canvas.width = gridSize * cellSize;
-    canvas.height = gridSize * cellSize;
+    const canvasSize = Math.min(window.innerWidth, window.innerHeight) * 0.9; // El canvas se ajusta a un 90% del tamaño de la pantalla
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+
     const ctx = canvas.getContext('2d');
+    const scale = canvasSize / (gridSize * cellSize); // Calcular la escala
 
     // Dibujar el pixel art en el canvas
     cells.forEach((cell, index) => {
@@ -346,7 +349,7 @@ function openImageInNewTab() {
       const y = Math.floor(index / gridSize) * cellSize;
       const color = cell.style.backgroundColor || 'white'; // Fondo blanco si no hay color
       ctx.fillStyle = color;
-      ctx.fillRect(x, y, cellSize, cellSize);
+      ctx.fillRect(x * scale, y * scale, cellSize * scale, cellSize * scale); // Escalar los píxeles
     });
 
     // Mostrar el contenedor en pantalla completa
